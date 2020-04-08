@@ -1,4 +1,5 @@
 from slacker import Slacker
+from datetime import datetime
 
 global slack
 
@@ -30,7 +31,7 @@ def GetMessageIdList(messageList):
     
     return messageIdList
 
-def BuildThreadList(messageIdList):
+def BuildThreadIdList(messageIdList):
     threadList = []
     for msgId in messageIdList:
         if IsThread(generalChannelId, msgId):
@@ -38,16 +39,33 @@ def BuildThreadList(messageIdList):
 
     return threadList
 
-slack = Slacker('xoxb-1046012676599-1057769372852-zQpZiCMqBiChot24ZOedzS5N')
+def GetFirstAndLastMessageInThread(channelId, threadId):
+    response = slack.conversations.replies(channelId, threadId)
+    messageList = response.body["messages"]
+    timeStampList = []
+    for message in messageList:
+        timeStampList.append(float(message["ts"]))
+
+    first = min(float(timeStamp) for timeStamp in timeStampList)
+    last = max(float(timeStamp) for timeStamp in timeStampList)
+
+    return first, last
+
+
+slack = Slacker('xoxb-1046012676599-1057769372852-jRVIxhLHfavSyzPODg669tvR')
 
 generalChannelId = GetChannelId("general")
 messageList = GetChannelHistory(generalChannelId)
 messageIdList = GetMessageIdList(messageList)
 
-print(messageIdList)
+threadIdList = BuildThreadIdList(messageIdList)
 
-threadList = BuildThreadList(messageIdList)
+print(threadIdList)
 
-print(threadList)
+for threadId in threadIdList:
+    first, last = GetFirstAndLastMessageInThread(generalChannelId, threadId)
+    conversationLength = round(((last - first) / 60), 2)
+    print("Conversation began: " + str(datetime.fromtimestamp(first)) + " and ended: " + str(datetime.fromtimestamp(last)))
+    print("The conversation was " + str(conversationLength) + " minutes long \n")
 
 
