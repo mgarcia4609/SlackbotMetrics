@@ -5,62 +5,48 @@ global slack
 
 def IsThread(channelId, messageId):
     response = slack.conversations.replies(channelId, messageId)
-    if len(response.body["messages"]) > 1:
-        return True
+
+    return len(response.body["messages"]) > 1
 
 def GetChannelId(channelName):
     response = slack.conversations.list()
     channelList = response.body["channels"]
 
-    for channel in channelList:
-        if channel["name"] == channelName:
-            channelId = channel["id"]
-
-    return channelId
+    return next(channel["id"] for channel in channelList if channel["name"] == channelName)
 
 def GetChannelHistory(channelId):
     response = slack.conversations.history(channelId)
-    messageList = response.body["messages"]
 
-    return messageList
+    return response.body["messages"]
 
 def GetMessageIdList(messageList):
-    messageIdList = []
-    for message in messageList:
-        messageIdList.append(message["ts"])
     
-    return messageIdList
+    return [message["ts"] for message in messageList]
 
 def BuildThreadIdList(messageIdList):
-    threadList = []
-    for msgId in messageIdList:
-        if IsThread(generalChannelId, msgId):
-            threadList.append(msgId)
 
-    return threadList
+    return [msgId for msgId in messageIdList if IsThread(generalChannelId, msgId)]
 
 def GetFirstAndLastMessageInThread(channelId, threadId):
     response = slack.conversations.replies(channelId, threadId)
     messageList = response.body["messages"]
-    timeStampList = []
-    for message in messageList:
-        timeStampList.append(float(message["ts"]))
+    timeStampList = [message["ts"] for message in messageList]
 
     first = min(float(timeStamp) for timeStamp in timeStampList)
     last = max(float(timeStamp) for timeStamp in timeStampList)
 
     return first, last
 
-
-slack = Slacker('xoxb-1046012676599-1057769372852-jRVIxhLHfavSyzPODg669tvR')
+def GetThreadMessageList(channelId, messageId):
+    return slack.conversations.replies(channelId, messageId)
+    
+slack = Slacker('xoxb-1046012676599-1057769372852-KMbHWMFK1dXG36yxfOqUB1gX')
 
 generalChannelId = GetChannelId("general")
 messageList = GetChannelHistory(generalChannelId)
 messageIdList = GetMessageIdList(messageList)
 
 threadIdList = BuildThreadIdList(messageIdList)
-
-print(threadIdList)
 
 for threadId in threadIdList:
     first, last = GetFirstAndLastMessageInThread(generalChannelId, threadId)
