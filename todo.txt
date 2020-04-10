@@ -1,0 +1,34 @@
+SlackBot ToDo:
+1. Refactor into classes:
+   class Controller():
+      WorkspaceToken
+      ChannelIdList
+	  UserIdList
+	  LastUpdated (when getting channel history, can pass in start/end timestamp parameters)
+	  DB\CSV
+	  
+   class Channel():
+          Id
+	  Name
+	  Users
+          __channelListObject
+	  
+   class Thread():
+      Id (this will match the message Id of first message in thread)
+	  Date
+	  StartTime
+	  EndTime
+	  Keywords?	  
+	  
+   class Message():
+      Id
+	  ParentId (if it's a thread)
+	  UserId
+	  UserName
+
+   class User():
+      Id
+	  Name
+	  Number of Messages
+	  
+2. Output CSV or SQLite
